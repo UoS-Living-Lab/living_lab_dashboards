@@ -61,7 +61,7 @@ def get_ttn_data(sensor_name):
 	return df
 
 
-def get_sel_data(sensor_name):
+def get_sel_data(sensor_name, unit_name):
 	data = []
 
 	conn = connect_sql_server()
@@ -77,11 +77,11 @@ def get_sel_data(sensor_name):
 			ON r.[mUnitGUID] = mu.[mUnitGUID]
 		JOIN [dbo].[SEL_UPDATES] as up
 			ON r.[readingGUID] = up.[readingGUID]
-		WHERE s.[sensorName] = ?
+		WHERE s.[sensorName] = ? AND u.[unitName] = ?
 		ORDER BY up.[lastUpdate] DESC
 	'''
 
-	params = str(sensor_name)
+	params = (str(sensor_name), str(unit_name))
 	cursor.execute(SQL, params)
 	rows = cursor.fetchall()
 	conn.close()
