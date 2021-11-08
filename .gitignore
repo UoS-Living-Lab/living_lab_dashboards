@@ -1,3 +1,11 @@
+.vscode
 __pycache__
+.moveDashVenv
 .venv
 .azure
+.env
+
+misc/jupyter_testing
+old
+data
+data/*
