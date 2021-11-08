@@ -38,11 +38,9 @@ def init_dashboard(server):
 				name='Temperature',
 				mode= 'lines+markers'
 				)
-		layout = go.Layout(
-			title = 'Temperature'
-			)
 
-		return {'data': [data],'layout' : [layout]}
+		return {'data': [data],'layout' : go.Layout(
+									title='TTN :' + sensor,)}
 
 	def sel_scatter(sensor, unit):
 		df = get_sel_data(sensor, unit)
@@ -59,7 +57,8 @@ def init_dashboard(server):
 			title = sensor
 			)
 
-		return {'data': [data],'layout' : [layout]}
+		return {'data': [data],'layout' : go.Layout(
+									title='SEL :' + sensor,)}
 
 
 	# Create Layout
