@@ -22,4 +22,4 @@ class Config:
 	# Static Assets
 	STATIC_FOLDER = "static"
 	TEMPLATES_FOLDER = "templates"
-	COMPRESSOR_DEBUG = config("COMPRESSOR_DEBUG")
+	#COMPRESSOR_DEBUG = config("COMPRESSOR_DEBUG")
