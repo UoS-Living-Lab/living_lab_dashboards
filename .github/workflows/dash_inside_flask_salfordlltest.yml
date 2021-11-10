@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'salfordLLTest'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D095057750AD4238BEE7F1EF2522E4C9 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_99280A84990143218266F13C8E74C0DB }}
