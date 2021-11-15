@@ -7,6 +7,7 @@ from decouple import config
 
 
 # Batabase access credentials
+DB_DRIVER = config('DB_DRIVER')
 DB_URL = config('AZURE_DB_SERVER')
 DB_BATABASE = config('AZURE_DB_DATABASE')
 DB_USR = config('AZURE_DB_USR')
@@ -26,7 +27,8 @@ def create_dataframe():
 
 def connect_sql_server():
 	# Formatted connection string for the SQL DB.
-	SQL_CONN_STR = "DSN={0};Database={1};UID={2};PWD={3};".format(DB_URL, DB_BATABASE, DB_USR, DB_PWD)
+	#SQL_CONN_STR = "DSN={0};Database={1};UID={2};PWD={3};".format(DB_URL, DB_BATABASE, DB_USR, DB_PWD)
+	SQL_CONN_STR = "DRIVER={0};SERVER={1};Database={2};UID={3};PWD={4};".format(DB_DRIVER, DB_URL, DB_BATABASE, DB_USR, DB_PWD)
 	
 	conn = pyodbc.connect(SQL_CONN_STR)
 	return conn
