@@ -1,12 +1,14 @@
 """Instantiate a Dash app."""
+from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 import dash
 from dash import dash_table
 from dash import html
 from dash import dcc
+from dash.dependencies import Output, Input
 import plotly.graph_objects as go
-from .data import create_dataframe, get_ttn_data, get_sel_data
+from .data import create_dataframe, get_ttn_data, get_sel_data, get_csv_data
 from .layout import html_layout
 
 
@@ -17,11 +19,26 @@ def init_dashboard(server):
 		external_stylesheets=[
 			'/static/dist/css/styles.css',
 			'https://fonts.googleapis.com/css?family=Lato'
-		]
+		],
+		prevent_initial_callbacks=True
 	)
 
 	# Load DataFrame
 	df = create_dataframe()
+
+
+	#TESTING
+	data = np.column_stack((np.arange(10), np.arange(10) * 2))
+	df = pd.DataFrame(columns=["a column", "another column"], data=data)
+	
+	today = date.today().strftime('%Y-%m-%d')
+	
+	last_day_of_prev_month = date.today().replace(day=1) - timedelta(days=1)
+	start_day_of_prev_month = date.today().replace(day=1) - timedelta(days=last_day_of_prev_month.day)
+	
+
+	#TESTING
+
 
 	# Custom HTML layout
 	dash_app.index_string = html_layout
@@ -66,6 +83,22 @@ def init_dashboard(server):
 		children=[
 			html.Div(
 				children=[
+					html.Div(),
+					dcc.DatePickerRange(
+						id = 'my-date-picker-range',
+						display_format = 'Y-M-D',
+						min_date_allowed = today,
+						max_date_allowed = today,
+						initial_visible_month = start_day_of_prev_month,
+						start_date = start_day_of_prev_month,
+						end_date = today
+					),
+					html.Button("Download CSV", id="btn"), dcc.Download(id="download"),
+					html.Div()
+					], className='DL-BTN'
+			),
+			html.Div(
+				children=[
 					dcc.Graph(id='ttn-temp', figure = ttn_scatter("Temperature")),
 				],
 				className='TTN'
@@ -102,5 +135,15 @@ def init_dashboard(server):
 		],
 		className='dash-container'
 	)
-	return dash_app.server
+	@dash_app.callback(
+		Output("download", "data"), 
+		[
+			Input("btn", "n_clicks"),
+			Input('my-date-picker-range', 'start_date'),
+			Input('my-date-picker-range', 'end_date')
+		],)
+	def generate_csv(n_nlicks, start_date, end_date):
+		data = get_csv_data(start_date, end_date)
+		return dcc.send_data_frame(data.to_csv, filename="living_lab_data.csv")
 
+	return dash_app.server

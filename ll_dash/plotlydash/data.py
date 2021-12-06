@@ -57,13 +57,13 @@ def get_ttn_data(sensor_name):
 
 	for row in rows:
 		data.append(list(row))
-		labels = ['sensor_name','sensor_value', 'received_at']
-		df = pd.DataFrame.from_records(data, columns=labels)
+	labels = ['sensor_name','sensor_value', 'received_at']
+	df = pd.DataFrame.from_records(data, columns=labels)
 
 	return df
 
 
-def get_sel_data(sensor_name, unit_name):
+def get_sel_data(sensor_name, unit_name, period_start = "01/11/2021", period_end = "11/11/2021"):
 	data = []
 
 	conn = connect_sql_server()
@@ -79,18 +79,51 @@ def get_sel_data(sensor_name, unit_name):
 			ON r.[mUnitGUID] = mu.[mUnitGUID]
 		JOIN [dbo].[SEL_UPDATES] as up
 			ON r.[readingGUID] = up.[readingGUID]
-		WHERE s.[sensorName] = ? AND u.[unitName] = ?
+		WHERE s.[sensorName] = ? AND u.[unitName] = ? AND up.[lastUpdate] > ? AND up.[lastUpdate] < ?
 		ORDER BY up.[lastUpdate] DESC
 	'''
 
-	params = (str(sensor_name), str(unit_name))
+	params = (str(sensor_name), str(unit_name), period_start, period_end)
 	cursor.execute(SQL, params)
 	rows = cursor.fetchall()
 	conn.close()
 
 	for row in rows:
 		data.append(list(row))
-		labels = ['sensorName','unitName', 'mUnitName', 'readingValue', 'lastUpdate']
-		df = pd.DataFrame.from_records(data, columns=labels)
+	labels = ['sensorName','unitName', 'mUnitName', 'readingValue', 'lastUpdate']
+	df = pd.DataFrame.from_records(data, columns=labels)
+	
+	return df
+
+def get_csv_data(start_date = "01/11/2021", end_date = "11/11/2021"):
+	data = []
+	conn = connect_sql_server()
+	cursor = conn.cursor()
+
+	SQL = '''
+		SELECT s.[sensorName], u.[unitName], mu.[mUnitName], r.[readingValue], up.[lastUpdate]
+		FROM [dbo].[SEL_READINGS] as r
+		JOIN [dbo].[SEL_SENSORS] as s
+			ON (r.[sensorGUID] = s.[sensorGUID])
+		JOIN [dbo].[SEL_UNITS] as u
+			ON r.[unitGUID] = u.[unitGUID]
+		JOIN [dbo].[SEL_MEASURE_UNITS] as mu
+			ON r.[mUnitGUID] = mu.[mUnitGUID]
+		JOIN [dbo].[SEL_UPDATES] as up
+			ON r.[readingGUID] = up.[readingGUID]
+		WHERE up.[lastUpdate] > ? AND up.[lastUpdate] < ?
+		ORDER BY up.[lastUpdate] DESC
+	'''
+
+	params = (start_date, end_date)
+	cursor.execute(SQL, params)
+	rows = cursor.fetchall()
+	conn.close()
+
+	for row in rows:
+		data.append(list(row))
+	
+	labels = ['sensorName','unitName', 'mUnitName', 'readingValue', 'lastUpdate']
+	df = pd.DataFrame.from_records(data, columns=labels)
 	
 	return df
