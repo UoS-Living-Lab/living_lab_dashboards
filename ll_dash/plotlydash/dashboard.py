@@ -27,18 +27,10 @@ def init_dashboard(server):
 	df = create_dataframe()
 
 
-	#TESTING
-	data = np.column_stack((np.arange(10), np.arange(10) * 2))
-	df = pd.DataFrame(columns=["a column", "another column"], data=data)
-	
 	today = date.today().strftime('%Y-%m-%d')
+	end_day = date.today().replace(day=1) - timedelta(days=1)
+	start_day = date.today().replace(day=1) - timedelta(days=end_day.day)
 	
-	last_day_of_prev_month = date.today().replace(day=1) - timedelta(days=1)
-	start_day_of_prev_month = date.today().replace(day=1) - timedelta(days=last_day_of_prev_month.day)
-	
-
-	#TESTING
-
 
 	# Custom HTML layout
 	dash_app.index_string = html_layout
@@ -89,8 +81,8 @@ def init_dashboard(server):
 						display_format = 'Y-M-D',
 						min_date_allowed = today,
 						max_date_allowed = today,
-						initial_visible_month = start_day_of_prev_month,
-						start_date = start_day_of_prev_month,
+						initial_visible_month = start_day,
+						start_date = start_day,
 						end_date = today
 					),
 					html.Button("Download CSV", id="btn"), dcc.Download(id="download"),
@@ -100,6 +92,7 @@ def init_dashboard(server):
 			html.Div(
 				children=[
 					dcc.Graph(id='ttn-temp', figure = ttn_scatter("Temperature")),
+					dcc.Graph(id="callback-testing"),
 				],
 				className='TTN'
 			),
@@ -145,5 +138,21 @@ def init_dashboard(server):
 	def generate_csv(n_nlicks, start_date, end_date):
 		data = get_csv_data(start_date, end_date)
 		return dcc.send_data_frame(data.to_csv, filename="living_lab_data.csv")
+
+
+	@dash_app.callback(
+		Output('callback-testing', 'figure'),
+		Input('my-date-picker-range', 'start_date'),
+		Input('my-date-picker-range', 'end_date')
+	)
+	def update_graph(sensor, unit, start_day, end_day):
+		df = get_sel_data(sensor, unit, start_day, end_day)
+		X = df['lastUpdate']
+		Y = df['readingValue']
+
+		fig = go.Scatter(x = list(X), y = list(Y), name = sensor, mode = 'lines+markers')
+		fig.update_layout(title = sensor)
+
+		return fig
 
 	return dash_app.server
